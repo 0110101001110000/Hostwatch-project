@@ -9,7 +9,7 @@ Pipeline de dados para análise de hospedagens com PostgreSQL e dashboards em Py
 
 *    **Linguagem:** Python
 *    **Banco de Dados:** PostgreSQL
-*    **Bibliotecas:** Pandas, Matplotlib, ...
+*    **Bibliotecas:** Selenium, Pandas, Matplotlib, ...
 
 **Desenvolvimento:**
 
@@ -20,5 +20,5 @@ Este projeto foi desenvolvido em grupo como parte de um exercício avaliativo pa
 *    [@matheussgb](https://github.com/Matheussgb)
 *    [@carloskayky](https://github.com/carloskayky)
 *    [@HelenaCarvalhoLeal](https://github.com/HelenaCarvalhoLeal)
+*    [@LuanMeloGuimaraes](https://github.com/LuanMeloGuimaraes)
 *    @luisgustavo
-*    @Luan
