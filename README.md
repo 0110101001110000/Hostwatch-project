@@ -19,6 +19,6 @@ Este projeto foi desenvolvido em grupo como parte de um exercício avaliativo pa
 *    [@victoorfeitosa](https://github.com/victoorfeitosa)
 *    [@matheussgb](https://github.com/Matheussgb)
 *    [@carloskayky](https://github.com/carloskayky)
+*    [@HelenaCarvalhoLeal](https://github.com/HelenaCarvalhoLeal)
 *    @luisgustavo
-*    @Helena
 *    @Luan
