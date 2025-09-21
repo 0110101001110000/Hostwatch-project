@@ -5,9 +5,9 @@ from src.utils.logger import logger
 from selenium.webdriver.common.by import By
 from random import (randint, uniform, random)
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common import MoveTargetOutOfBoundsException, StaleElementReferenceException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common import MoveTargetOutOfBoundsException, StaleElementReferenceException
 
 
 # Init ---------------------------------------------------------------------- #
@@ -25,20 +25,20 @@ class BookingScrapper:
 
         logger.info("BookingScrapper iniciado.")
 
-    def select_language(self):
+    def select_language(self, language="pt-br"):
         logger.info("Selecionando linguagem...")
 
         element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='header-language-picker-trigger']")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='selection-item'][lang='pt-br']")))
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, f"button[data-testid='selection-item'][lang='{language}']")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
         logger.info("Linguagem selecionada.")
 
-    def select_coin(self, coin):
+    def select_coin(self, coin="brl"):
         logger.info("Selecionando moeda...")
 
         try:
@@ -65,11 +65,10 @@ class BookingScrapper:
         except StaleElementReferenceException:
             logger.info("Moeda selecionada.")
 
-
     def set_destination(self, destination):
         logger.info("Configurando destino...")
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='stays-search-box'] div[data-testid='destination-container']")))
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-layout-wide'] div[data-testid='destination-container']")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
@@ -80,7 +79,7 @@ class BookingScrapper:
     def set_dates(self, day, month, year, days_in="exact"):
         logger.info("Configurando data de check-in...")
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='stays-search-box'] button[data-testid='searchbox-dates-container'")))
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-layout-wide'] button[data-testid='searchbox-dates-container'")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
@@ -101,7 +100,7 @@ class BookingScrapper:
     def set_occupancy(self):
         logger.info("Configurando ocupantes...")
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='stays-search-box'] button[data-testid='occupancy-config']")))
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-layout-wide'] button[data-testid='occupancy-config']")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
@@ -116,11 +115,69 @@ class BookingScrapper:
     def search(self):
         logger.info("Pesquisando...")
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='stays-search-box'] button[type='submit']")))
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-layout-wide'] button[type='submit']")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
         logger.info("Pesquisa realizada.")
+
+    def set_hotel_filter(self):
+        logger.info("Filtrando tipo de propriedade para hotel...")
+
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='filters-group-container'] div[data-filters-item='ht_id:ht_id=204']")))
+        sleep(uniform(0.5, 2))
+        self.click(element)
+
+        logger.info("Tipo de propriedade filtrado para hotel.")
+
+    def get_property_elements(self):
+        logger.info("Obtendo elementos das propriedades...")
+
+        while True:
+            last_height = self.driver.execute_script("return document.body.scrollHeight")
+
+            if random() <= 0.20:
+                self.scroll_up()
+                sleep(uniform(0.5, 2))
+
+            self.scroll_down()
+
+            if random() <= 0.20: sleep(randint(1, 3))
+
+            new_height = self.driver.execute_script("return window.pageYOffset + window.innerHeight")
+            total_height = self.driver.execute_script("return document.body.scrollHeight")
+
+            if new_height >= (total_height * 0.98):
+                elements = self.wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[data-testid='property-card-container']")))
+                assert len(elements) > 0, "Nenhuma propriedade fora encontrada"
+                logger.info("Elementos das propriedades obtidos.")
+                return elements
+
+    def get_property_information(self, elements: list):
+        logger.info("Obtendo informações das propriedades...")
+
+        properties_information = []
+        for element in elements:
+            try:
+                title             = element.find_element(By.CSS_SELECTOR, "div[data-testid='title']").text
+                address           = element.find_element(By.CSS_SELECTOR, "span[data-testid='address']").text
+                recommended_units = element.find_element(By.CSS_SELECTOR, "div[data-testid='recommended-units']").text
+                review_score      = element.find_element(By.CSS_SELECTOR, "div[data-testid='review-score']").text
+                final_price       = element.find_element(By.CSS_SELECTOR, "span[data-testid='price-and-discounted-price']").text
+
+                properties_information.append({
+                    "title"            : title,
+                    "address"          : address,
+                    "recommended_units": recommended_units,
+                    "review_score"     : review_score,
+                    "final_price"      : final_price
+                })
+            except:
+                logger.warning(f"Erro ao obter informações do elemento: '''{element.text}'''")
+
+        logger.info("Informações das propriedades obtidas.")
+
+        return properties_information
 
     def click(self, element):
         try:
@@ -147,16 +204,16 @@ class BookingScrapper:
             self.actions.send_keys(char).perform()
 
     def scroll_down(self):
-        amount_to_scroll = randint(100, 250)
+        amount_to_scroll = randint(300, 600)
 
-        sleep(uniform(1, 2))
+        sleep(uniform(0.6, 2))
 
         self.driver.execute_script(f"window.scrollBy(0, {amount_to_scroll});")
 
     def scroll_up(self):
-        amount_to_scroll = randint(150, 300)
+        amount_to_scroll = randint(300, 600)
 
-        sleep(uniform(0.5, 2))
+        sleep(uniform(0.6, 2))
 
         self.driver.execute_script(f"window.scrollBy(0, -{amount_to_scroll});")
 
