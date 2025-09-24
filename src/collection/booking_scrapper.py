@@ -1,5 +1,6 @@
 
 from time import sleep
+from datetime import datetime
 from selenium import webdriver
 from src.utils.logger import logger
 from selenium.webdriver.common.by import By
@@ -25,21 +26,21 @@ class BookingScrapper:
 
         logger.info("BookingScrapper iniciado.")
 
-    def select_language(self, language="pt-br"):
-        logger.info("Selecionando linguagem...")
+    def select_idiom(self, idiom="pt-br"):
+        logger.info('Selecionando o idioma "{}"...'.format(idiom))
 
         element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='header-language-picker-trigger']")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, f"button[data-testid='selection-item'][lang='{language}']")))
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='selection-item'][lang='{}']".format(idiom))))
         sleep(uniform(0.5, 2))
         self.click(element)
 
-        logger.info("Linguagem selecionada.")
+        logger.info("Idioma selecionado.")
 
     def select_coin(self, coin="brl"):
-        logger.info("Selecionando moeda...")
+        logger.info('Selecionando a moeda "{}"...'.format(coin))
 
         try:
             element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='header-currency-picker-trigger']")))
@@ -47,26 +48,29 @@ class BookingScrapper:
             self.click(element)
 
             element = None
+            mark    = (By.CSS_SELECTOR, "button[data-testid='selection-item']")
             coin    = coin.lower()
 
-            self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-testid='selection-item']")))
+            self.wait.until(EC.element_to_be_clickable(mark))
 
-            elements = self.driver.find_elements(By.CSS_SELECTOR, "button[data-testid='selection-item']")
+            elements = self.driver.find_elements(*mark)
             for el in elements:
                 if coin in el.text.lower(): element = el
 
-            assert element is not None, "A moeda %s não foi encontrada".format(coin.upper())
+            assert element is not None, 'A moeda "{}" não foi encontrada'.format(coin.upper())
 
             sleep(uniform(0.5, 2))
             self.click(element)
 
             sleep(random())
             self.click(element)
-        except StaleElementReferenceException:
-            logger.info("Moeda selecionada.")
+        except StaleElementReferenceException as error:
+            logger.warning("Ocorreu um erro: {}".format(error.msg))
+
+        logger.info("Moeda selecionada.")
 
     def set_destination(self, destination):
-        logger.info("Configurando destino...")
+        logger.info('Configurando destino para "{}"...'.format(destination))
 
         element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-layout-wide'] div[data-testid='destination-container']")))
         sleep(uniform(0.5, 2))
@@ -77,19 +81,25 @@ class BookingScrapper:
         logger.info("Destino configurado.")
 
     def set_dates(self, day, month, year, days_in="exact"):
-        logger.info("Configurando data de check-in...")
+        logger.info(
+            'Configurando data de check-in para: "dia={0}", "mês={1}", "ano={2}", "quantidade_de_dias={3}"...'.format(
+                day, month, year, days_in
+            )
+        )
 
         element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-layout-wide'] button[data-testid='searchbox-dates-container'")))
         sleep(uniform(0.5, 2))
         self.click(element)
 
-        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, f"div[data-testid='searchbox-datepicker'] span[data-date='{year}-{month}-{day}']")))
+        now_month = int(datetime.now().month)
+        assert (int(month) == now_month) or (int(month) == (now_month + 1)), "O mês deve ser o atual, ou o próximo, considerando a data da máquina local"
+        element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "div[data-testid='searchbox-datepicker'] span[data-date='{0}-{1}-{2}']".format(year, month, day))))
         sleep(uniform(0.5, 2))
         #assert int(element.text) == int(day)
         self.click(element)
 
         days_in = days_in.lower()
-        assert (days_in == "exact") or (days_in in ["1", "2", "3", "7"])
+        assert (days_in == "exact") or (days_in in ["1", "2", "3", "7"]), 'A quantidade de dias somente pode ser: "1", "2", "3", "7" ou "exact"'
         element = self.wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, f"div[data-testid='datepicker-footer'] input[value='{days_in}']")))
         element = element.find_element(By.XPATH, "./..")
         sleep(uniform(0.5, 2))
