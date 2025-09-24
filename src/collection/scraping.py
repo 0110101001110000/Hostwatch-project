@@ -1,8 +1,8 @@
 
 import os
-import datetime
 import pandas as pd
 from random import sample
+from datetime import datetime
 from src.collection.booking_scrapper import BookingScrapper
 
 
@@ -18,21 +18,26 @@ def random_order(*actions):
 
 
 if __name__ == "__main__":
-    start_time = datetime.datetime.now()
+    start_time           = datetime.now()
+    formatted_start_time = start_time.strftime("%d-%m-%Y %H:%M:%S")
 
     booking_bot = BookingScrapper()
 
     language = "en-us"
     coin     = "usd"
     location = "Kyoto Japan"
+    day      = "06"
+    month    = "10"
+    year     = "2025"
+    days_in  = "1"
 
     random_order(
-        (booking_bot.select_language, language),
+        (booking_bot.select_idiom, language),
         (booking_bot.select_coin, coin)
     )
     random_order(
         (booking_bot.set_destination, location),
-        (booking_bot.set_dates, "01", "01", "2026", "7"),
+        (booking_bot.set_dates, day, month, year, days_in),
         (booking_bot.set_occupancy,)
     )
     booking_bot.search()
@@ -45,5 +50,5 @@ if __name__ == "__main__":
 
     SCRAPPING_DIR = "../../data/interim"
     os.makedirs(SCRAPPING_DIR, exist_ok=True)
-    SCRAPPING_FILE = os.path.join(SCRAPPING_DIR, f"{location} {start_time}.csv")
+    SCRAPPING_FILE = os.path.join(SCRAPPING_DIR, f"{location} {formatted_start_time}.csv")
     df.to_csv(SCRAPPING_FILE, index=False)
