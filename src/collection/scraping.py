@@ -1,9 +1,11 @@
 
 import os
 import pandas as pd
-from random import sample
 from datetime import datetime
+from random import (sample, random)
+from src.utils.logger import logger
 from src.collection.booking_scrapper import BookingScrapper
+from src.utils.selenium import Selenium
 
 
 # Functions ----------------------------------------------------------------- #
@@ -18,18 +20,27 @@ def random_order(*actions):
 
 
 if __name__ == "__main__":
+    logger.name = "scrapping.py"
+
+    logger.info("Iniciando scrapping...")
+
     start_time           = datetime.now()
     formatted_start_time = start_time.strftime("%d-%m-%Y %H:%M:%S")
 
-    booking_bot = BookingScrapper()
+    selenium_utils = Selenium()
+    booking_bot    = BookingScrapper(selenium_utils)
 
-    language = "en-us"
-    coin     = "usd"
-    location = "Kyoto Japan"
-    day      = "06"
-    month    = "10"
-    year     = "2025"
-    days_in  = "1"
+    language      = "pt-br"
+    coin          = "brl"
+    location      = "Florianópolis"
+    day           = "01"
+    month         = "10"
+    year          = "2025"
+    days_in       = "1"
+    SCRAPPING_DIR = "../../data/interim"
+
+    if random() <= 0.5: booking_bot.decline_cookie()
+    else: booking_bot.accept_cookie()
 
     random_order(
         (booking_bot.select_idiom, language),
@@ -48,7 +59,8 @@ if __name__ == "__main__":
 
     df = pd.DataFrame(property_information)
 
-    SCRAPPING_DIR = "../../data/interim"
     os.makedirs(SCRAPPING_DIR, exist_ok=True)
     SCRAPPING_FILE = os.path.join(SCRAPPING_DIR, f"{location} {formatted_start_time}.csv")
     df.to_csv(SCRAPPING_FILE, index=False)
+
+    logger.info("Scrapping finalizado.")
