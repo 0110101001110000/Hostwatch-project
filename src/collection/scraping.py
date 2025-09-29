@@ -15,31 +15,24 @@ def random_order(*actions):
     for func, *args in sample(actions, len(actions)):
         func(*args)
 
-
-# Init ---------------------------------------------------------------------- #
-
-
-if __name__ == "__main__":
-    logger.name = "scrapping.py"
-
+def start_booking_scrapper_scrapping(
+        location,
+        day,
+        month,
+        year,
+        days_in,
+        language,
+        coin,
+        output_dir,
+        accept_cookie_prob=0.5,
+        save_csv=True
+):
     logger.info("Iniciando scrapping...")
 
     start_time           = datetime.now()
     formatted_start_time = start_time.strftime("%d-%m-%Y %H:%M:%S")
 
-    selenium_utils = Selenium()
-    booking_bot    = BookingScrapper(selenium_utils)
-
-    language      = "pt-br"
-    coin          = "brl"
-    location      = "Florianópolis"
-    day           = "01"
-    month         = "10"
-    year          = "2025"
-    days_in       = "1"
-    SCRAPPING_DIR = "../../data/interim"
-
-    if random() <= 0.5: booking_bot.decline_cookie()
+    if random() <= accept_cookie_prob: booking_bot.decline_cookie()
     else: booking_bot.accept_cookie()
 
     random_order(
@@ -57,10 +50,32 @@ if __name__ == "__main__":
     property_elements    = booking_bot.get_property_elements()
     property_information = booking_bot.get_property_information(property_elements)
 
-    df = pd.DataFrame(property_information)
+    if save_csv:
+        df = pd.DataFrame(property_information)
 
-    os.makedirs(SCRAPPING_DIR, exist_ok=True)
-    SCRAPPING_FILE = os.path.join(SCRAPPING_DIR, f"{location} {formatted_start_time}.csv")
-    df.to_csv(SCRAPPING_FILE, index=False)
+        os.makedirs(output_dir, exist_ok=True)
+        SCRAPPING_FILE = os.path.join(output_dir, f"{location} {formatted_start_time}.csv")
+        df.to_csv(SCRAPPING_FILE, index=False)
 
     logger.info("Scrapping finalizado.")
+
+
+# Init ---------------------------------------------------------------------- #
+
+
+if __name__ == "__main__":
+    logger.name = "scrapping.py"
+
+    selenium_utils = Selenium()
+    booking_bot    = BookingScrapper(selenium_utils)
+
+    language      = "pt-br"
+    coin          = "brl"
+    location      = "Tiradentes Minas Gerais"
+    day           = "01"
+    month         = "10"
+    year          = "2025"
+    days_in       = "1"
+    SCRAPPING_DIR = "../../data/raw"
+
+    start_booking_scrapper_scrapping(location, day, month, year, days_in, language, coin, SCRAPPING_DIR)
